@@ -10,7 +10,7 @@ fn run_one(day: &dyn Fn() -> String) -> (String, Duration) {
 }
 
 fn main() {
-    let result = run_one(&aoc2020::day01::run);
+    let result = run_one(&aoc2020::day02::run);
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();

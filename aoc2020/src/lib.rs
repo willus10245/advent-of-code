@@ -123,7 +123,7 @@ pub mod day02 {
                 let pos2char = pass_chars.clone().nth(pos2 - 1).unwrap();
                 let charchar = character.chars().next().unwrap();
 
-                (pos1char == charchar || pos2char == charchar) && !(pos1char == pos2char)
+                (pos1char == charchar) ^ (pos2char == charchar)
             })
             .filter(|is_valid| *is_valid)
             .count();

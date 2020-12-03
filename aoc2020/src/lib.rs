@@ -93,13 +93,10 @@ pub mod day02 {
         let valid_password_count = policies_and_passwords
             .iter()
             .map(|caps| {
-                let min: i32 = caps.name("min").unwrap().as_str().parse().unwrap();
-                let max: i32 = caps.name("max").unwrap().as_str().parse().unwrap();
-                let num_chars = caps
-                    .name("pass")
-                    .unwrap()
-                    .as_str()
-                    .matches(caps.name("char").unwrap().as_str())
+                let min: i32 = caps["min"].parse().unwrap();
+                let max: i32 = caps["max"].parse().unwrap();
+                let num_chars = caps["pass"]
+                    .matches(&caps["char"])
                     .collect::<Vec<_>>()
                     .len();
 
@@ -113,17 +110,17 @@ pub mod day02 {
         let real_valid_password_count = policies_and_passwords
             .iter()
             .map(|caps| {
-                let pos1: usize = caps.name("min").unwrap().as_str().parse().unwrap();
-                let pos2: usize = caps.name("max").unwrap().as_str().parse().unwrap();
-                let character = caps.name("char").unwrap().as_str();
-                let pass = caps.name("pass").unwrap().as_str();
+                let pos1: usize = caps["min"].parse().unwrap();
+                let pos2: usize = caps["max"].parse().unwrap();
+                let character = &caps["char"];
+                let pass = &caps["pass"];
                 let pass_chars = pass.chars();
 
                 let pos1char = pass_chars.clone().nth(pos1 - 1).unwrap();
                 let pos2char = pass_chars.clone().nth(pos2 - 1).unwrap();
                 let charchar = character.chars().next().unwrap();
 
-                (pos1char == charchar) ^ (pos2char == charchar)
+                (pos1char == charchar) != (pos2char == charchar)
             })
             .filter(|is_valid| *is_valid)
             .count();

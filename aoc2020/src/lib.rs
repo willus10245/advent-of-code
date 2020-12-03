@@ -137,3 +137,82 @@ pub mod day02 {
         result
     }
 }
+
+// Input: grid of (.) representing open spaces and (#) representing trees
+//
+// Problem 1: starting at top left, how many trees would you hit going to the bottom with
+// a slope of 1/3
+//
+// Problem 2: Find product of trees hit when descending with slopes of 1, 1/3, 1/5, 1/7, and 2
+pub mod day03 {
+    use lazy_static::lazy_static;
+    use std::fmt::Write;
+
+    pub fn run() -> String {
+        let mut result: String = String::new();
+
+        // Parse input
+        lazy_static! {
+            static ref FILE_STRING: String =
+                std::fs::read_to_string("data/input-day03.txt").unwrap();
+        }
+
+        const TREE: char = '#';
+        let lines: Vec<&str> = FILE_STRING.lines().collect();
+        let width = lines[0].len();
+
+        // Day 3 - Problem 1
+        let mut curr_x = 0;
+        let mut trees_hit = 0;
+
+        for line in lines.clone() {
+            if line.chars().nth(curr_x).unwrap() == TREE {
+                trees_hit += 1;
+            }
+            curr_x = (curr_x + 3) % width;
+        }
+
+        writeln!(&mut result, "Day 3, Problem 1 - [{}]", trees_hit).unwrap();
+
+        // Day 3 - Problem 2
+        let slopes = vec![1, 5, 7];
+        let mut trees_hit_vec: Vec<i64> = slopes
+            .iter()
+            .map(|slope| {
+                let mut trees_hit = 0;
+                let mut curr_x = 0;
+
+                for line in lines.clone() {
+                    if line.chars().nth(curr_x).unwrap() == TREE {
+                        trees_hit += 1;
+                    }
+                    curr_x = (curr_x + slope) % width;
+                }
+
+                trees_hit
+            })
+            .collect();
+
+        let mut trees_hit_weird = 0;
+        let mut curr_x = 0;
+
+        for (i, line) in lines.clone().iter().enumerate() {
+            if i % 2 == 0 {
+                if line.chars().nth(curr_x).unwrap() == TREE {
+                    trees_hit_weird += 1;
+                }
+                curr_x = (curr_x + 1) % width;
+            }
+        }
+
+        trees_hit_vec.append(&mut vec![trees_hit_weird, trees_hit]);
+
+        let total_trees_hit = trees_hit_vec
+            .iter()
+            .fold(1, |acc, trees_hit| trees_hit * acc);
+
+        writeln!(&mut result, "Day 3, Problem 2 - [{}]", total_trees_hit).unwrap();
+
+        result
+    }
+}

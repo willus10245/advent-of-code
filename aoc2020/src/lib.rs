@@ -126,7 +126,7 @@ pub mod day02 {
             .count();
         writeln!(
             &mut result,
-            "Day 2, Problem 1 - [{}]",
+            "Day 2, Problem 2 - [{}]",
             real_valid_password_count
         )
         .unwrap();
@@ -209,6 +209,165 @@ pub mod day03 {
             .fold(1, |acc, trees_hit| trees_hit * acc);
 
         writeln!(&mut result, "Day 3, Problem 2 - [{}]", total_trees_hit).unwrap();
+
+        result
+    }
+}
+
+// Input: string containing several hundred sets of passport data as key:value pairs
+//
+// Problem 1: How many passwords are valid? (contain all required fields)
+//
+// Problem 2: How many passwords are valid? (strict data validation)
+pub mod day04 {
+    use lazy_static::lazy_static;
+    use regex::Regex;
+    use std::collections::HashMap;
+    use std::fmt::Write;
+
+    fn from_passport_str(pass_str: &&str) -> HashMap<String, String> {
+        let mut data_map = HashMap::new();
+
+        for kv in pass_str.replace("\n", " ").split(" ") {
+            let list = kv.split(":").collect::<Vec<_>>();
+            data_map.insert(String::from(list[0]), String::from(list[1]));
+        }
+
+        data_map
+    }
+
+    pub fn run() -> String {
+        let mut result: String = String::new();
+
+        // Parse input
+        lazy_static! {
+            static ref FILE_STRING: String =
+                std::fs::read_to_string("data/input-day04.txt").unwrap();
+        }
+
+        let passport_strings = FILE_STRING.split("\n\n").collect::<Vec<_>>();
+
+        // Day 4 - Problem 1
+        let valid_count = passport_strings
+            .iter()
+            .map(|pass_str| is_valid(pass_str))
+            .filter(|is_valid| *is_valid)
+            .count();
+        writeln!(&mut result, "Day 4, Problem 1 - [{}]", valid_count).unwrap();
+
+        // Day 4 - Problem 2
+        let real_valid_count = passport_strings
+            .iter()
+            .map(|pass_str| from_passport_str(pass_str))
+            .map(|data_map| strict_is_valid(data_map))
+            .filter(|is_valid| *is_valid)
+            .count();
+        writeln!(&mut result, "Day 4, Problem 2 - [{}]", real_valid_count).unwrap();
+
+        result
+    }
+
+    fn is_valid(passport_string: &&str) -> bool {
+        let required_fields = vec!["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+        required_fields
+            .iter()
+            .fold(true, |acc, field| acc && passport_string.contains(field))
+    }
+
+    fn strict_is_valid(pass_data: HashMap<String, String>) -> bool {
+        let required_fields = vec!["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+        required_fields
+            .iter()
+            .cloned()
+            .map(|field| match pass_data.get(&String::from(field)) {
+                None => false,
+                Some(value) => match field {
+                    "byr" => match value.parse::<u32>() {
+                        Ok(n) => n >= 1920 && n <= 2002,
+                        _ => false,
+                    },
+                    "iyr" => match value.parse::<u32>() {
+                        Ok(n) => n >= 2010 && n <= 2020,
+                        _ => false,
+                    },
+                    "eyr" => match value.parse::<u32>() {
+                        Ok(n) => n >= 2020 && n <= 2030,
+                        _ => false,
+                    },
+                    "hgt" => match value {
+                        value if value.ends_with("cm") => {
+                            match value.trim_end_matches("cm").parse::<u32>() {
+                                Ok(n) => n >= 150 && n <= 193,
+                                _ => false,
+                            }
+                        }
+                        value if value.ends_with("in") => {
+                            match value.trim_end_matches("in").parse::<u32>() {
+                                Ok(n) => n >= 59 && n <= 76,
+                                _ => false,
+                            }
+                        }
+                        _ => false,
+                    },
+                    "hcl" => Regex::new(r"^#[[:xdigit:]]{6}$").unwrap().is_match(value),
+                    "ecl" => {
+                        ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(&&value[..])
+                    }
+                    "pid" => value.len() == 9,
+                    _ => false,
+                },
+            })
+            .fold(true, |acc, valid| acc && valid)
+    }
+}
+
+// Input: 868 strings representing airplane seat assignments
+//
+// Problem: Highest seat id
+//
+// Probelm: find missing seat id (it's ours!)
+pub mod day05 {
+    use lazy_static::lazy_static;
+    use std::fmt::Write;
+
+    pub fn run() -> String {
+        let mut result: String = String::new();
+
+        // Parse input
+        lazy_static! {
+            static ref FILE_STRING: String =
+                std::fs::read_to_string("data/input-day05.txt").unwrap();
+        }
+
+        let mut seat_ids = FILE_STRING
+            .lines()
+            .map(|line| {
+                let mut id = 0;
+                for (i, c) in line.chars().rev().enumerate() {
+                    match c {
+                        'B' => id += 2usize.pow(i as u32),
+                        'R' => id += 2usize.pow(i as u32),
+                        _ => (),
+                    }
+                }
+                id
+            })
+            .collect::<Vec<_>>();
+
+        // Day 5 - Problem 1
+        let highest_id = seat_ids.iter().fold(0, |highest, id| highest.max(*id));
+        writeln!(&mut result, "Day 5, Problem 1 - [{}]", highest_id).unwrap();
+        // Day 5 - Problem 2
+        seat_ids.sort();
+        let mut missing: usize = 0;
+        for n in seat_ids[0]..*seat_ids.last().unwrap() {
+            if !seat_ids.contains(&n) {
+                if seat_ids.contains(&(&n + 1)) && seat_ids.contains(&(&n - 1)) {
+                    missing = n;
+                }
+            }
+        }
+        writeln!(&mut result, "Day 5, Problem 2 - [{}]", missing).unwrap();
 
         result
     }

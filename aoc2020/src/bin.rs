@@ -33,6 +33,7 @@ fn main() {
         aoc2020::day03::run,
         aoc2020::day04::run,
         aoc2020::day05::run,
+        aoc2020::day06::run,
     ];
 
     let result = run_all(days.iter());

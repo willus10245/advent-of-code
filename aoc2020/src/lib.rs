@@ -372,3 +372,78 @@ pub mod day05 {
         result
     }
 }
+
+pub mod day06 {
+    use lazy_static::lazy_static;
+    use std::collections::HashSet;
+    use std::fmt::Write;
+
+    pub fn run() -> String {
+        let mut result: String = String::new();
+
+        // Parse input
+        lazy_static! {
+            static ref FILE_STRING: String =
+                std::fs::read_to_string("data/input-day06.txt").unwrap();
+        }
+
+        let groups = FILE_STRING.split("\n\n");
+        // Day 6 - Problem 1
+        let mut yes_answers: Vec<HashSet<char>> = Vec::new();
+        for group in groups.clone() {
+            let mut group_set = HashSet::new();
+            for c in group.replace("\n", "").chars() {
+                group_set.insert(c);
+            }
+            yes_answers.push(group_set);
+        }
+        let total_yes_answers = yes_answers
+            .iter()
+            .map(|set| set.len())
+            .fold(0, |total, count| total + count);
+
+        writeln!(&mut result, "Day 6, Problem 1 - [{}]", total_yes_answers).unwrap();
+
+        // Day 6 - Problem 2
+        let mut all_yes_answers = Vec::new();
+        for group in groups.clone() {
+            let people = group.split("\n").collect::<Vec<_>>();
+            if people.len() == 1 {
+                let person = people[0];
+                let mut person_set = HashSet::new();
+                for c in person.chars() {
+                    person_set.insert(c);
+                }
+                all_yes_answers.push(person_set);
+            } else {
+                let mut people_sets = Vec::new();
+                for person in people.clone() {
+                    let mut person_set = HashSet::new();
+                    for c in person.chars() {
+                        person_set.insert(c);
+                    }
+                    people_sets.push(person_set);
+                }
+                let first = people_sets.pop().unwrap();
+                let intersection = first
+                    .iter()
+                    .cloned()
+                    .filter(|c| people_sets.iter().all(|set| set.contains(c)))
+                    .collect::<HashSet<char>>();
+                all_yes_answers.push(intersection);
+            }
+        }
+        let total_all_yes_answers = all_yes_answers
+            .iter()
+            .map(|set| set.len())
+            .fold(0, |total, count| total + count);
+        writeln!(
+            &mut result,
+            "Day 6, Problem 2 - [{}]",
+            total_all_yes_answers
+        )
+        .unwrap();
+
+        result
+    }
+}

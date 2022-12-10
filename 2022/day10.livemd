@@ -1,0 +1,197 @@
+# Day 10
+
+```elixir
+input = """
+addx 1
+noop
+noop
+noop
+addx 5
+addx 5
+noop
+noop
+addx 9
+addx -5
+addx 1
+addx 4
+noop
+noop
+noop
+addx 6
+addx -1
+noop
+addx 5
+addx -2
+addx 7
+noop
+addx 3
+addx -2
+addx -38
+noop
+noop
+addx 32
+addx -22
+noop
+addx 2
+addx 3
+noop
+addx 2
+addx -2
+addx 7
+addx -2
+noop
+addx 3
+addx 2
+addx 5
+addx 2
+addx -5
+addx 10
+noop
+addx 3
+noop
+addx -38
+addx 1
+addx 27
+noop
+addx -20
+noop
+addx 2
+addx 27
+noop
+addx -22
+noop
+noop
+noop
+noop
+addx 3
+addx 5
+addx 2
+addx -11
+addx 16
+addx -2
+addx -17
+addx 24
+noop
+noop
+addx 1
+addx -38
+addx 15
+addx 10
+addx -15
+noop
+addx 2
+addx 26
+noop
+addx -21
+addx 19
+addx -33
+addx 19
+noop
+addx -6
+addx 9
+addx 3
+addx 4
+addx -21
+addx 4
+addx 20
+noop
+addx 3
+addx -38
+addx 28
+addx -21
+addx 9
+addx -8
+addx 2
+addx 5
+addx 2
+addx -9
+addx 14
+addx -2
+addx -5
+addx 12
+addx 3
+addx -2
+addx 2
+addx 7
+noop
+noop
+addx -27
+addx 28
+addx -36
+noop
+addx 1
+addx 5
+addx -1
+noop
+addx 6
+addx -1
+addx 5
+addx 5
+noop
+noop
+addx -2
+addx 20
+addx -10
+addx -3
+addx 1
+addx 3
+addx 2
+addx 4
+addx 3
+noop
+addx -30
+noop
+"""
+```
+
+## Part 1
+
+```elixir
+program =
+  input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn
+    "addx " <> value -> {:addx, String.to_integer(value)}
+    "noop" -> :noop
+  end)
+
+interesting_cycles =
+  0..5
+  |> Enum.map(&(&1 * 40 + 20))
+
+program_run =
+  Enum.reduce(program, [{1, 1}], fn instruction, [{cycle, x_reg} | _] = acc ->
+    acc = [{cycle + 1, x_reg} | acc]
+
+    case instruction do
+      :noop ->
+        acc
+
+      {:addx, value} ->
+        [{cycle + 2, x_reg + value} | acc]
+    end
+  end)
+
+program_run
+|> Enum.filter(fn {cycle, _value} -> cycle in interesting_cycles end)
+|> Enum.map(fn {cycle, value} -> cycle * value end)
+|> Enum.sum()
+```
+
+## Part 2
+
+```elixir
+program_run
+|> Enum.reverse()
+|> Enum.map(fn {cycle, x_position} ->
+  if rem(cycle - 1, 40) in (x_position - 1)..(x_position + 1) do
+    "#"
+  else
+    "."
+  end
+end)
+|> Enum.chunk_every(40)
+|> Enum.map(&Enum.join/1)
+|> Enum.join("\n")
+|> IO.puts()
+```
